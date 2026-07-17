@@ -65,8 +65,18 @@ whereami --proxy 7890
 
 自动检测 Windows 系统代理，无需手动指定。仅当检测失败或使用非标准端口时才需 `--proxy`。
 
-## Credit
+## 为什么存在
 
-- [darkosancanin/apple_bssid_locator](https://github.com/darkosancanin/apple_bssid_locator) — Python BSSID 定位
-- [hubert3/iSniff-GPS](https://github.com/hubert3/iSniff-GPS) — Apple protobuf 逆向
-- [acheong08/apple-corelocation-experiments](https://github.com/acheong08/apple-corelocation-experiments) — 发现中国端点
+三个项目散落在 GitHub 角落，各自解决了一个子问题，但从未被整合：
+
+| 项目 | 发现了什么 | 缺什么 |
+|---|---|---|
+| [iSniff-GPS](https://github.com/hubert3/iSniff-GPS) | Apple 定位 API 的 protobuf 协议 | 需要手动抓 BSSID，命令行复杂 |
+| [apple_bssid_locator](https://github.com/darkosancanin/apple_bssid_locator) | 封装成简洁 Python 脚本 | 只支持全球端点，国内不可用 |
+| [apple-corelocation-experiments](https://github.com/acheong08/apple-corelocation-experiments) | 发现中国专线 `gs-loc-cn.apple.com` | Go 实现，普通人用不了 |
+
+**whereami = 三条河流汇到一处。**
+
+扫描 WiFi → 调中国端点 → 中位数三角定位 → 逆地理编码 → 一个命令出结果。
+
+好的项目不缺，缺的是散落在各处无人发现、无人整合。
