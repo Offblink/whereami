@@ -19,9 +19,16 @@ import AppleWLoc_pb2
 
 # Auto-detect Windows system proxy (requests doesn't use it by default)
 _proxy_ok = False
+_proxy_manual = False
 
-def _setup_proxy() -> bool:
-    global _proxy_ok
+def _setup_proxy(manual: str | None = None) -> bool:
+    global _proxy_ok, _proxy_manual
+    if manual:
+        os.environ["HTTPS_PROXY"] = manual
+        os.environ["HTTP_PROXY"] = manual
+        _proxy_ok = True
+        _proxy_manual = True
+        return True
     if sys.platform != "win32":
         return False
     try:
@@ -38,8 +45,6 @@ def _setup_proxy() -> bool:
     except Exception:
         pass
     return False
-
-_setup_proxy()
 
 CHINA_URL = "https://gs-loc-cn.apple.com/clls/wloc"
 GLOBAL_URL = "https://gs-loc.apple.com/clls/wloc"
@@ -90,6 +95,7 @@ def query(bssids: list[str], *, china: bool = True) -> list[dict]:
         },
         data=body,
         timeout=30,
+        proxies={"http": None, "https": None},  # Apple CN direct, no proxy
     )
     if r.status_code != 200:
         print(f"HTTP {r.status_code}", file=sys.stderr)
@@ -126,6 +132,27 @@ def geocode(lat: float, lon: float) -> str:
         return ""
 
 def main() -> None:
+    proxy = None
+    # Parse args
+    args = sys.argv[1:]
+    if "--help" in args or "-h" in args:
+        print("用法: whereami [--proxy 7890]")
+        print("")
+        print("  --proxy PORT  手动指定代理端口号（默认 127.0.0.1）")
+        print("                 自动检测 Windows 系统代理（无需手动指定）")
+        sys.exit(0)
+    if len(args) >= 2 and args[0] == "--proxy":
+        proxy = f"http://127.0.0.1:{args[1]}"
+    elif len(args) == 1 and args[0].startswith("--proxy="):
+        port = args[0].split("=", 1)[1]
+        proxy = f"http://127.0.0.1:{port}"
+
+    _setup_proxy(proxy)
+
+    if not _proxy_ok:
+        print("提示: 未检测到代理，地址反查将不可用")
+        print("      使用 --proxy 7890 手动指定端口号\n")
+
     bssids = scan_wifi()
     if not bssids:
         sys.exit("未检测到 WiFi 网络")
@@ -147,6 +174,8 @@ def main() -> None:
     addr = geocode(med_lat, med_lon)
     if addr:
         print(f"地址       : {addr}")
+    elif _proxy_manual:
+        print("地址       : 代理连接失败，请检查端口号是否正确")
     elif not _proxy_ok:
         print("地址       : (开启代理可显示街道级地址)")
     print(f"https://maps.google.com/?q={med_lat:.6f},{med_lon:.6f}")
