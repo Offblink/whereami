@@ -1,0 +1,12 @@
+[project]
+name = "whereami"
+version = "0.1.0"
+description = "WiFi geolocation — no GPS, no API key, just nearby BSSIDs"
+requires-python = ">=3.9"
+dependencies = ["protobuf>=5", "requests>=2"]
+
+[project.scripts]
+whereami = "whereami:main"
+
+[tool.setuptools]
+py-modules = ["whereami", "AppleWLoc_pb2"]
