@@ -178,7 +178,7 @@ def main() -> None:
         print("地址       : 代理连接失败，请检查端口号是否正确")
     elif not _proxy_ok:
         print("地址       : (开启代理可显示街道级地址)")
-    print(f"https://maps.google.com/?q={med_lat:.6f},{med_lon:.6f}")
+    print(f"地图       : https://maps.google.com/?q={med_lat:.6f},{med_lon:.6f} ← 点我在浏览器中查看位置")
 
 
 if __name__ == "__main__":
